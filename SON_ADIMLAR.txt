@@ -1,0 +1,27 @@
+========================================
+WSL2 Kurulumu - Son Adımlar
+========================================
+
+1. BİLGİSAYARI YENİDEN BAŞLATIN
+   (bcdedit ve servis değişiklikleri için gerekli)
+
+2. Yeniden başlattıktan sonra PowerShell'i Yönetici olarak açın
+
+3. Ubuntu kurulumunu tekrar deneyin:
+   wsl --install -d Ubuntu
+
+4. Eğer hala çalışmazsa, BIOS'ta Virtualization kontrolü gerekli
+   (Ancak BIOS'a giremiyorsanız, alternatif çözümler var)
+
+========================================
+ALTERNATİF ÇÖZÜMLER
+========================================
+
+Eğer WSL2 çalışmazsa:
+
+1. Online Build Servisi kullanabiliriz
+2. Linux sanal makine (VirtualBox/VMware)
+3. Başka bir bilgisayarda (Linux/Mac) APK oluşturma
+4. Cloud build servisi (GitHub Actions, vb.)
+
+========================================

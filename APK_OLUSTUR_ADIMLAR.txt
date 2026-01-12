@@ -1,0 +1,30 @@
+========================================
+APK OLUŞTURMA ADIMLARI
+========================================
+
+Ubuntu terminalini açın ve şu komutları sırayla çalıştırın:
+
+1. Proje dizinine gidin:
+   cd /mnt/d/python310/Projeler/Stok\ Takip
+
+2. Script'i çalıştırılabilir yapın:
+   chmod +x apk_olustur_otomatik.sh
+
+3. Script'i çalıştırın:
+   bash apk_olustur_otomatik.sh
+
+VEYA manuel olarak:
+
+1. Sistem güncellemesi:
+   sudo apt update
+   sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+
+2. Buildozer kurulumu:
+   pip3 install --user --upgrade buildozer Cython
+   export PATH=$PATH:~/.local/bin
+
+3. APK oluştur:
+   cd /mnt/d/python310/Projeler/Stok\ Takip
+   buildozer android debug
+
+APK dosyası bin/ klasöründe oluşacak!

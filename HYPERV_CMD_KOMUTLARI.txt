@@ -1,0 +1,24 @@
+========================================
+Hyper-V Servislerini Başlatma (CMD)
+========================================
+
+PowerShell'de şu komutları kullanın:
+
+# Servisleri otomatik başlatma için ayarla
+sc.exe config vmcompute start= auto
+sc.exe config vmms start= auto
+
+# Servisleri başlat
+Start-Service vmcompute
+Start-Service vmms
+
+# VEYA CMD komutları (cmd.exe'yi çalıştırın):
+sc config vmcompute start= auto
+sc config vmms start= auto
+net start vmcompute
+net start vmms
+
+# Servis durumlarını kontrol et
+Get-Service vmcompute, vmms
+
+========================================

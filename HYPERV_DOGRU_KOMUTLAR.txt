@@ -1,0 +1,30 @@
+========================================
+PowerShell'de DOĞRU Komutlar
+========================================
+
+ÖNEMLI: PowerShell'de "sc" yerine "sc.exe" yazın!
+
+# Servisleri otomatik başlatma için ayarla
+sc.exe config vmcompute start= auto
+sc.exe config vmms start= auto
+
+# Servisleri başlat
+Start-Service vmcompute
+Start-Service vmms
+
+# Kontrol et
+Get-Service vmcompute, vmms
+
+========================================
+VEYA CMD Kullanın:
+========================================
+
+1. CMD'yi Yönetici olarak açın (cmd.exe)
+2. Şu komutları çalıştırın:
+
+sc config vmcompute start= auto
+sc config vmms start= auto
+net start vmcompute
+net start vmms
+
+========================================
