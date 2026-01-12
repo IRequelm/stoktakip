@@ -27,15 +27,15 @@ jobs:
         pip3 install --user buildozer Cython
         echo "$HOME/.local/bin" >> $GITHUB_PATH
     
-    - name: Initialize Buildozer
+    - name: Check Buildozer
       run: |
-        buildozer init
-      working-directory: ${{ github.workspace }}
-      continue-on-error: true
+        buildozer --version
+        which buildozer
     
     - name: Build APK
       run: |
-        buildozer android debug 2>&1 | tee build.log
+        set -e
+        buildozer android debug
       working-directory: ${{ github.workspace }}
       timeout-minutes: 90
       continue-on-error: false
@@ -54,8 +54,9 @@ jobs:
       with:
         name: build-logs
         path: |
-          build.log
-          .buildozer/*.log
+          .buildozer/**/*.log
+          buildozer.spec
+        if-no-files-found: ignore
         retention-days: 7
     
     - name: Upload APK as Release Asset (if tag)
