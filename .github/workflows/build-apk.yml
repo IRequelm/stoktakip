@@ -29,14 +29,20 @@ jobs:
     
     - name: Check Buildozer
       run: |
+        export PATH=$HOME/.local/bin:$PATH
         buildozer --version
         which buildozer
+    
+    - name: Check buildozer.spec
+      run: |
+        ls -la buildozer.spec
+        head -50 buildozer.spec
     
     - name: Build APK
       run: |
         set -e
         export PATH=$HOME/.local/bin:$PATH
-        buildozer -v android debug 2>&1
+        buildozer -v android debug
       working-directory: ${{ github.workspace }}
       timeout-minutes: 90
     
