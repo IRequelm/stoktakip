@@ -13,7 +13,7 @@ package.domain = org.stoktakip
 source.dir = .
 
 # (list) Source files to include (let empty to include all the files)
-source.include_exts = py,png,jpg,kv,atlas,json
+source.include_exts = py,png,jpg,jpeg,kv,atlas,json,db
 
 # (list) List of inclusions using pattern matching
 source.include_patterns = logos/*.png,logos/*.jpg
