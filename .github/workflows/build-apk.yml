@@ -35,10 +35,10 @@ jobs:
     - name: Build APK
       run: |
         set -e
-        buildozer android debug
+        export PATH=$HOME/.local/bin:$PATH
+        buildozer -v android debug 2>&1
       working-directory: ${{ github.workspace }}
       timeout-minutes: 90
-      continue-on-error: false
     
     - name: Upload APK
       if: success()
