@@ -50,8 +50,9 @@ requirements = python3,kivy,sqlite3
 # (str) Icon of the application
 icon.filename = %(source.dir)s/logos/Logo1.png
 
-# (str) Supported orientation (one of landscape, sensorLandscape, portrait or all)
-orientation = all
+# (str) Supported orientation (one of landscape, sensorLandscape, portrait, sensor, fullSensor)
+# sensor allows both portrait and landscape orientations
+orientation = sensor
 
 # (bool) Indicate if the application should be fullscreen or not
 fullscreen = 0
