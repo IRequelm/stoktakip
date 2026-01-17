@@ -56,14 +56,28 @@ jobs:
       run: |
         export PATH="$HOME/.local/bin:$PATH"
         echo "=== Starting buildozer build ==="
+        echo "Current PATH: $PATH"
         echo "Buildozer path: $(which buildozer || echo 'not found')"
-        echo "Buildozer version: $(buildozer --version || echo 'error')"
-        echo ""
-        buildozer android debug 2>&1 | tee build.log || {
-          echo "Build failed, showing last 100 lines:"
-          tail -100 build.log
+        
+        if ! command -v buildozer &> /dev/null; then
+          echo "ERROR: buildozer command not found in PATH!"
+          echo "Checking $HOME/.local/bin:"
+          ls -la $HOME/.local/bin/ || echo "Directory not found"
           exit 1
-        }
+        fi
+        
+        echo "Buildozer version: $(buildozer --version)"
+        echo "Current directory: $(pwd)"
+        echo "buildozer.spec exists: $(test -f buildozer.spec && echo 'yes' || echo 'no')"
+        echo ""
+        echo "Starting buildozer android debug..."
+        
+        set -e  # Exit on any error
+        buildozer android debug 2>&1 | tee build.log
+        
+        echo ""
+        echo "Build completed. Checking for APK files..."
+        find . -name "*.apk" -type f 2>/dev/null || echo "No APK files found"
 
     - name: Show build logs on failure
       if: failure()
