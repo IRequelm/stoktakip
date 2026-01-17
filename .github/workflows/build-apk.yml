@@ -69,15 +69,33 @@ jobs:
         echo "Buildozer version: $(buildozer --version)"
         echo "Current directory: $(pwd)"
         echo "buildozer.spec exists: $(test -f buildozer.spec && echo 'yes' || echo 'no')"
+        if [ -f buildozer.spec ]; then
+          echo "First 10 lines of buildozer.spec:"
+          head -10 buildozer.spec
+        fi
         echo ""
         echo "Starting buildozer android debug..."
+        echo "This may take 2-4 hours. Please be patient..."
+        echo ""
         
-        set -e  # Exit on any error
+        # Run buildozer and capture exit code
         buildozer android debug 2>&1 | tee build.log
+        BUILD_EXIT_CODE=${PIPESTATUS[0]}
         
         echo ""
-        echo "Build completed. Checking for APK files..."
-        find . -name "*.apk" -type f 2>/dev/null || echo "No APK files found"
+        echo "Buildozer exit code: $BUILD_EXIT_CODE"
+        echo "Build log size: $(wc -l < build.log || echo 0) lines"
+        echo ""
+        
+        if [ $BUILD_EXIT_CODE -ne 0 ]; then
+          echo "ERROR: Buildozer failed with exit code $BUILD_EXIT_CODE"
+          echo "Last 50 lines of build.log:"
+          tail -50 build.log
+          exit 1
+        fi
+        
+        echo "Build completed successfully. Checking for APK files..."
+        find . -name "*.apk" -type f 2>/dev/null | head -10 || echo "WARNING: No APK files found!"
 
     - name: Show build logs on failure
       if: failure()
