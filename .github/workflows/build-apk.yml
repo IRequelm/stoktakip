@@ -69,7 +69,6 @@ jobs:
           tail -100 build.log
           exit 1
         }
-      continue-on-error: true
 
     - name: Show build logs on failure
       if: failure()
