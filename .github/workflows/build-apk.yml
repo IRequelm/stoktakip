@@ -2,73 +2,117 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:  # Manuel tetikleme için
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+    timeout-minutes: 360  # 6 saat timeout (GitHub free tier limiti)
+
     steps:
-    - uses: actions/checkout@v3
-    
+    - name: Checkout code
+      uses: actions/checkout@v3
+
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.10'
-    
+        cache: 'pip'
+
+    - name: Cache buildozer dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.buildozer
+          ~/.local/bin
+        key: buildozer-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
+        restore-keys: |
+          buildozer-${{ runner.os }}-
+
     - name: Install system dependencies
       run: |
-        sudo apt-get update
-        sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses-dev libtinfo6 cmake libffi-dev libssl-dev
-    
-    - name: Install Buildozer
+        sudo apt-get update -qq
+        sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses-dev libncursesw-dev libtinfo6 cmake libffi-dev libssl-dev
+
+    - name: Install buildozer
       run: |
-        pip3 install --user buildozer Cython
+        pip3 install --user --upgrade buildozer Cython
         echo "$HOME/.local/bin" >> $GITHUB_PATH
-    
-    - name: Check Buildozer
+
+    - name: Verify buildozer installation
       run: |
-        export PATH=$HOME/.local/bin:$PATH
-        buildozer --version
-        which buildozer
-    
-    - name: Check buildozer.spec
+        export PATH="$HOME/.local/bin:$PATH"
+        buildozer --version || echo "Buildozer version check failed"
+
+    - name: Prepare build environment
       run: |
-        ls -la buildozer.spec
-        head -50 buildozer.spec
-    
-    - name: Build APK
+        export PATH="$HOME/.local/bin:$PATH"
+        # Disk alanını kontrol et
+        df -h
+        # Buildozer dizinini oluştur
+        mkdir -p ~/.buildozer/android/platform
+
+    - name: Build APK with buildozer
+      env:
+        PATH: ${{ github.workspace }}/bin:$HOME/.local/bin:$PATH
       run: |
-        set -e
-        export PATH=$HOME/.local/bin:$PATH
-        buildozer -v android debug
-      working-directory: ${{ github.workspace }}
-      timeout-minutes: 90
-    
-    - name: Upload APK
-      if: success()
-      uses: actions/upload-artifact@v4
+        export PATH="$HOME/.local/bin:$PATH"
+        echo "=== Starting buildozer build ==="
+        echo "Disk space before build:"
+        df -h
+        echo ""
+        buildozer android debug 2>&1 | tee build.log || {
+          echo "Build failed, showing last 100 lines:"
+          tail -100 build.log
+          exit 1
+        }
+      continue-on-error: true
+
+    - name: Show build logs on failure
+      if: failure()
+      run: |
+        echo "=== Build Log (last 200 lines) ==="
+        tail -200 build.log || echo "Build log not found"
+        echo ""
+        echo "=== Disk space after build ==="
+        df -h
+
+    - name: List build artifacts
+      if: always()
+      run: |
+        echo "=== Build directory contents ==="
+        ls -la bin/ 2>/dev/null || echo "bin/ directory not found"
+        echo ""
+        echo "=== Searching for APK files ==="
+        find . -name "*.apk" -type f 2>/dev/null | head -20 || echo "No APK files found"
+        find . -name "*.aab" -type f 2>/dev/null | head -20 || echo "No AAB files found"
+        echo ""
+        echo "=== Buildozer output directory ==="
+        ls -la .buildozer/android/app/build/outputs/ 2>/dev/null || echo "Buildozer output directory not found"
+
+    - name: Upload APK artifact
+      if: always()
+      uses: actions/upload-artifact@v3
       with:
         name: apk
-        path: bin/*.apk
+        path: |
+          bin/*.apk
+          bin/*.aab
+          .buildozer/android/app/build/outputs/**/*.apk
+          .buildozer/android/app/build/outputs/**/*.aab
+        if-no-files-found: warn
         retention-days: 30
-    
-    - name: Upload build logs (if failed)
-      if: failure()
-      uses: actions/upload-artifact@v4
+
+    - name: Upload build logs
+      if: always()
+      uses: actions/upload-artifact@v3
       with:
         name: build-logs
         path: |
-          .buildozer/**/*.log
-          buildozer.spec
+          build.log
+          .buildozer/android/platform/*/build/*.log
         if-no-files-found: ignore
         retention-days: 7
-    
-    - name: Upload APK as Release Asset (if tag)
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: softprops/action-gh-release@v1
-      with:
-        files: bin/*.apk
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
