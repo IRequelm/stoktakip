@@ -49,20 +49,15 @@ jobs:
 
     - name: Prepare build environment
       run: |
-        export PATH="$HOME/.local/bin:$PATH"
-        # Disk alanını kontrol et
-        df -h
         # Buildozer dizinini oluştur
         mkdir -p ~/.buildozer/android/platform
 
     - name: Build APK with buildozer
-      env:
-        PATH: ${{ github.workspace }}/bin:$HOME/.local/bin:$PATH
       run: |
         export PATH="$HOME/.local/bin:$PATH"
         echo "=== Starting buildozer build ==="
-        echo "Disk space before build:"
-        df -h
+        echo "Buildozer path: $(which buildozer || echo 'not found')"
+        echo "Buildozer version: $(buildozer --version || echo 'error')"
         echo ""
         buildozer android debug 2>&1 | tee build.log || {
           echo "Build failed, showing last 100 lines:"
@@ -75,9 +70,6 @@ jobs:
       run: |
         echo "=== Build Log (last 200 lines) ==="
         tail -200 build.log || echo "Build log not found"
-        echo ""
-        echo "=== Disk space after build ==="
-        df -h
 
     - name: List build artifacts
       if: always()
