@@ -58,6 +58,20 @@ jobs:
         # SDK tools dizinini oluştur (buildozer için backward compatibility)
         mkdir -p ~/.buildozer/android/platform/android-sdk/tools/bin
 
+    - name: Fix SDK manager path (if needed)
+      run: |
+        SDK_PATH="$HOME/.buildozer/android/platform/android-sdk"
+        if [ -d "$SDK_PATH/cmdline-tools" ] && [ ! -f "$SDK_PATH/tools/bin/sdkmanager" ]; then
+          echo "Creating sdkmanager symlink for buildozer compatibility..."
+          mkdir -p "$SDK_PATH/tools/bin"
+          # Find latest cmdline-tools
+          LATEST_CMD=$(find "$SDK_PATH/cmdline-tools" -name "sdkmanager" -type f | head -1)
+          if [ -n "$LATEST_CMD" ]; then
+            ln -sf "$LATEST_CMD" "$SDK_PATH/tools/bin/sdkmanager"
+            echo "Created symlink: $SDK_PATH/tools/bin/sdkmanager -> $LATEST_CMD"
+          fi
+        fi
+
     - name: Build APK with buildozer
       run: |
         export PATH="$HOME/.local/bin:$PATH"
@@ -80,6 +94,15 @@ jobs:
           head -10 buildozer.spec
         fi
         echo ""
+        
+        # Check for sdkmanager before starting build
+        SDK_PATH="$HOME/.buildozer/android/platform/android-sdk"
+        if [ -f "$SDK_PATH/cmdline-tools/latest/bin/sdkmanager" ] && [ ! -f "$SDK_PATH/tools/bin/sdkmanager" ]; then
+          echo "Creating sdkmanager symlink..."
+          mkdir -p "$SDK_PATH/tools/bin"
+          ln -sf "$SDK_PATH/cmdline-tools/latest/bin/sdkmanager" "$SDK_PATH/tools/bin/sdkmanager"
+        fi
+        
         echo "Starting buildozer android debug..."
         echo "This may take 2-4 hours. Please be patient..."
         echo ""
